@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypto Prices</title>
+</head>
+<body>
+    <h1>Current Prices of Coins</h1>
+    <ul>
+        {% for coin in coins %}
+            <li>{{ coin.name }}: ${{ coin.price }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Нет нужной монеты? Добавьте ее!</h2>
+    <form action="/add-coin" method="post">
+        <input type="text" name="name" required>
+        <button type="submit">Добавить</button>
+    </form>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>
