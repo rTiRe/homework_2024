@@ -1,6 +1,6 @@
 """App."""
 
-from fastapi import FastAPI, Request, Depends, Form
+from fastapi import FastAPI, Request, Depends, Form, APIRouter
 from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
 import asyncio
@@ -13,6 +13,9 @@ from sqlalchemy.orm import sessionmaker
 from models import Coin, CoinPrice, Alert
 from utils import load_async_db, check_coin_name, get_coin_data, send_email
 from typing import AsyncGenerator
+from pydantic import BaseModel, Field
+from fastapi import HTTPException
+from uuid import UUID
 
 engine = create_async_engine(load_async_db(), echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
@@ -161,6 +164,47 @@ async def add_coin(request: Request, name: str = Form(), db: AsyncSession = Depe
         messages = {'add_message': 'Монета успешно добавлена!'}
     return await root(request, db, messages)
 
+
+router = APIRouter()
+
+class CoinBase(BaseModel):
+    name: str
+
+class CoinCreate(CoinBase):
+    pass
+
+class CoinRead(BaseModel):
+    id: UUID = Field(..., example="123e4567-e89b-12d3-a456-426614174000")
+    name: str
+
+    class Config:
+        json_encoders = {
+            UUID: lambda x: str(x)
+        }
+
+# CRUD операции
+@router.post("/coins/", response_model=CoinRead)
+async def create_coin(coin: CoinCreate, db: AsyncSession = Depends(get_session)):
+    coin_exists = await db.execute(select(Coin).filter(Coin.name == coin.name.upper()))
+    coin_in_db = coin_exists.scalars().first()
+    if coin_in_db:
+        raise HTTPException(status_code=400, detail="Монета с таким именем уже существует в базе данных!")
+    if not await check_coin_name(coin.name):
+        raise HTTPException(status_code=404, detail="Монета не найдена на бирже!")
+    db_coin = Coin(name=coin.name.upper())
+    db.add(db_coin)
+    await db.commit()
+    await db.refresh(db_coin)
+    return db_coin
+
+@router.get("/coins/")
+async def read_coins(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(Coin))
+    coins = result.scalars().all()
+    return coins
+
+
+app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host=APP_HOST, port=APP_PORT)
