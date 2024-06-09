@@ -22,6 +22,21 @@ async def get_session() -> AsyncGenerator:
         yield session
 
 
+async def get_current_coin_price(db: AsyncSession, coin_name: str) -> float:
+    result = await db.execute(
+        select(CoinPrice.price)
+        .join(Coin, Coin.id == CoinPrice.coin_id)
+        .where(Coin.name == coin_name.upper())
+        .order_by(CoinPrice.timedate.desc())
+        .limit(1)
+    )
+    price = result.scalars().first()
+    if price:
+        return price
+    else:
+        return None
+
+
 async def check_alerts_and_send_emails(db: AsyncSession, coin: Coin, current_price: float):
     alerts = await db.execute(
         select(Alert).where(Alert.coin_id == coin.id)
@@ -35,6 +50,8 @@ async def check_alerts_and_send_emails(db: AsyncSession, coin: Coin, current_pri
                 alert.email,
                 f"Alert for {coin.name}: price reached {current_price} which triggers your alert set at {alert.threshold_price}."
             )
+            await db.delete(alert)
+    return db
 
 
 async def update_prices():
@@ -51,7 +68,7 @@ async def update_prices():
                     price=current_price,
                 )
                 session.add(new_price)
-                await check_alerts_and_send_emails(session, coin, current_price)
+                session = await check_alerts_and_send_emails(session, coin, current_price)
         await session.commit()
 
 
@@ -97,29 +114,52 @@ async def get_all_coins(db):
     return result.scalars().all()
 
 
-@app.post("/add-coin")
+@app.get('/', response_class=HTMLResponse)
+async def root(request: Request, db: AsyncSession = Depends(get_session), messages: dict = None):
+    coins_data = await get_coins_data(request, db)
+    return templates.TemplateResponse('index.html', {'request': request, 'coins': coins_data, 'messages': messages})
+
+
+@app.post("/subscribe")
+async def subscribe(
+    request: Request,
+    email: str = Form(),
+    coin: str = Form(),
+    threshold_price: float = Form(),
+    db: AsyncSession = Depends(get_session)
+):
+    coin_obj = await db.execute(select(Coin).filter(Coin.name == coin.upper()))
+    coin_obj = coin_obj.scalars().first()
+    if not coin_obj:
+        messages = {'subscribe_message': 'Монета не найдена'}
+        return await root(request, db, messages)
+    current_price = await get_current_coin_price(db, coin)
+    if current_price is None:
+        messages = {'subscribe_message': 'Не удалось получить текущую цену монеты'}
+        return await root(request, db, messages)
+    alert_type = 'inc' if threshold_price > current_price else 'dec'
+    new_alert = Alert(email=email, coin_id=coin_obj.id, threshold_price=threshold_price, alert_type=alert_type)
+    db.add(new_alert)
+    await db.commit()
+    messages = {'subscribe_message': 'Подписка оформлена успешно'}
+    return await root(request, db, messages)
+
+
+@app.post('/add-coin')
 async def add_coin(request: Request, name: str = Form(), db: AsyncSession = Depends(get_session)):
     coin_exists = await db.execute(select(Coin).filter(Coin.name == name.upper()))
     coin_in_db = coin_exists.scalars().first() is not None
     coin_on_exchange = await check_coin_name(name)
     if coin_in_db:
-        message = "Монета с таким именем уже существует в базе данных!"
+        messages = {'add_message': 'Монета с таким именем уже существует в базе данных!'}
     elif not coin_on_exchange:
-        message = "Монета не найдена на бирже!"
+        messages = {'add_message': 'Монета не найдена на бирже!'}
     else:
         new_coin = Coin(name=name)
         db.add(new_coin)
         await db.commit()
-        message = "Монета успешно добавлена!"
-
-    coins_data = await get_coins_data(request, db)
-    return templates.TemplateResponse("index.html", {"request": request, "coins": coins_data, "message": message})
-
-
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request, db: AsyncSession = Depends(get_session)):
-    coins_data = await get_coins_data(request, db)
-    return templates.TemplateResponse("index.html", {"request": request, "coins": coins_data})
+        messages = {'add_message': 'Монета успешно добавлена!'}
+    return await root(request, db, messages)
 
 
 if __name__ == "__main__":

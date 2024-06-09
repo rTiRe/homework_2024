@@ -38,5 +38,5 @@ async def send_email(subject: str, recipient: str, body: str) -> None:
         port=SMTP_PORT,
         username=SMTP_USERNAME,
         password=SMTP_PASSWORD,
-        use_tls=True
+        start_tls=True,
     )

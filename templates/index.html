@@ -16,8 +16,32 @@
         <input type="text" name="name" required>
         <button type="submit">Добавить</button>
     </form>
-    {% if message %}
-        <p>{{ message }}</p>
+    {% if messages %}
+        {% for key, value in messages.items() %}
+            {% if key == 'add_message' %}
+                <p>{{ value }}</p>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <h2>Хотите получать уведомления о изменениях цен? Подпишитесь!</h2>
+    <form action="/subscribe" method="post">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="coin">Coin Name:</label>
+        <input type="text" id="coin" name="coin" required>
+        
+        <label for="threshold_price">Threshold Price:</label>
+        <input type="number" id="threshold_price" name="threshold_price" step="0.00001" required>
+        
+        <button type="submit">Подписаться</button>
+    </form>
+    {% if messages %}
+        {% for key, value in messages.items() %}
+            {% if key == 'subscribe_message' %}
+                <p>{{ value }}</p>
+            {% endif %}
+        {% endfor %}
     {% endif %}
 </body>
 </html>
