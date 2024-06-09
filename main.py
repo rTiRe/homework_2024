@@ -10,8 +10,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from models import Coin, CoinPrice
-from utils import load_async_db, check_coin_name, get_coin_data
+from models import Coin, CoinPrice, Alert
+from utils import load_async_db, check_coin_name, get_coin_data, send_email
 from typing import AsyncGenerator
 
 engine = create_async_engine(load_async_db(), echo=True)
@@ -22,6 +22,21 @@ async def get_session() -> AsyncGenerator:
         yield session
 
 
+async def check_alerts_and_send_emails(db: AsyncSession, coin: Coin, current_price: float):
+    alerts = await db.execute(
+        select(Alert).where(Alert.coin_id == coin.id)
+    )
+    alerts = alerts.scalars().all()
+    for alert in alerts:
+        if ((alert.alert_type == "inc" and current_price >= alert.threshold_price) or
+            (alert.alert_type == "dec" and current_price <= alert.threshold_price)):
+            await send_email(
+                "Price Alert",
+                alert.email,
+                f"Alert for {coin.name}: price reached {current_price} which triggers your alert set at {alert.threshold_price}."
+            )
+
+
 async def update_prices():
     async for session in get_session():
         coins = await session.execute(select(Coin))
@@ -30,11 +45,13 @@ async def update_prices():
             coin_data = await get_coin_data(coin.name)
             if coin_data['code'] == '0' and coin_data['data']:
                 price_data = coin_data['data'][0]
+                current_price = float(price_data['last'])
                 new_price = CoinPrice(
                     coin_id=coin.id,
-                    price=float(price_data['last']),
+                    price=current_price,
                 )
                 session.add(new_price)
+                await check_alerts_and_send_emails(session, coin, current_price)
         await session.commit()
 
 

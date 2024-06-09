@@ -7,11 +7,6 @@ from utils import get_current_datetime
 from datetime import datetime
 from enum import Enum as PyEnum
 
-class AlertType(PyEnum):
-    INCREASE = "increase"
-    DECREASE = "decrease"
-
-
 class Base(DeclarativeBase):
     """Base Moodels class."""
 
@@ -46,7 +41,7 @@ class Alert(UUIDMixin, Base):
     coin_id: Mapped[UUID] = mapped_column(ForeignKey('coins.id'))
     threshold_price: Mapped[float] = mapped_column(Float, nullable=False)
     email: Mapped[str] = mapped_column(String(50))
-    alert_type: Mapped[AlertType] = mapped_column(Enum(AlertType), nullable=False)
+    alert_type: Mapped[str] = mapped_column(String(3), nullable=False)
     coin: Mapped[Coin] = relationship(back_populates='alerts')
 
     @validates('email')
