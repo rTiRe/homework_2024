@@ -80,7 +80,7 @@ async def get_coin_data_pretty(name: str, db: AsyncSession) -> tuple | str:
     if not coin:
         return 'Монета не найдена'
     try:
-        current_price = await get_current_coin_price(coin, db)
+        current_price = await get_current_coin_price(name, db)
     except HTTPException:
         return 'Не удалось получить цену монеты.'
     return coin, current_price

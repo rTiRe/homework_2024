@@ -4,7 +4,8 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import Depends, FastAPI, Form, Request, responses, templating
+from fastapi import (Depends, FastAPI, Form, HTTPException, Request, responses,
+                     templating)
 from sqlalchemy import Sequence, exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +14,7 @@ from constants import APP_HOST, APP_PORT
 from db_utils import get_session
 from email_utils import send_email
 from models import Alert, Coin, CoinPrice
-from validators import check_coin_name
+from validators import check_coin_name, validate_email
 
 alert_router = alert_api.router
 coin_router = coin_api.router
@@ -210,6 +211,10 @@ async def subscribe(
         messages = {subscribe_message_literal: coin_data}
     if threshold_price < 0:
         messages = {subscribe_message_literal: 'Цена не может быть отрицательной'}
+    try:
+        email = await validate_email(email)
+    except HTTPException:
+        messages = {subscribe_message_literal: 'Введите корректный email'}
     if not messages:
         alert_type = 'inc' if threshold_price > current_price else 'dec'
         new_alert = Alert(
@@ -223,9 +228,6 @@ async def subscribe(
             await db.commit()
         except exc.IntegrityError:
             messages = {subscribe_message_literal: 'Такая подписка уже оформлена!'}
-            await db.rollback()
-        except ValueError as exception:
-            messages = {subscribe_message_literal: str(exception)}
             await db.rollback()
         else:
             messages = {subscribe_message_literal: 'Подписка оформлена успешно'}
