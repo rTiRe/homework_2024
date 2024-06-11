@@ -4,7 +4,8 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import Depends, FastAPI, Form, Request, responses, templating
+from fastapi import (Depends, FastAPI, Form, HTTPException, Request, responses,
+                     templating)
 from sqlalchemy import Sequence, exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -207,9 +208,12 @@ async def subscribe(
     messages = False
     if not coin_obj:
         messages = {subscribe_message_literal: 'Монета не найдена'}
-    current_price = await coin_api.get_current_coin_price(db, coin)
-    if current_price is None:
-        messages = {subscribe_message_literal: 'Не удалось получить текущую цену монеты'}
+    try:
+        current_price = await coin_api.get_current_coin_price(coin, db)
+    except HTTPException:
+        messages = {subscribe_message_literal: 'Не удалось получить цену монеты.'}
+    if threshold_price < 0:
+        messages = {subscribe_message_literal: 'Цена не может быть отрицательной'}
     if not messages:
         alert_type = 'inc' if threshold_price > current_price else 'dec'
         new_alert = Alert(

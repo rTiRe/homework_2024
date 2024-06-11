@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from api.coin_utils import get_coin_data
 
 
-async def positive_number_validator(number: int | float) -> None:
+def positive_number_validator(number: int | float) -> None:
     """Check if a positive number.
 
     Args:
