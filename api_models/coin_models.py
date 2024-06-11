@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationInfo, field_validator
 
 from time_utils import (get_current_datetime, get_delta_timestamp,
@@ -67,7 +66,7 @@ class CoinQuery(BaseModel):
             fields_info: ValidationInfo - information about model fields.
 
         Raises:
-            HTTPException: if given timestamp in future.
+            ValueError: if given timestamp in future.
 
         Returns:
             float: given timestamp value.
@@ -91,7 +90,7 @@ class CoinQuery(BaseModel):
             fields_info: ValidationInfo - information about model fields.
 
         Raises:
-            HTTPException: if end_timestamp value bigger than start_timestamp value.
+            ValueError: if end_timestamp value bigger than start_timestamp value.
 
         Returns:
             int: end_timestamp value.

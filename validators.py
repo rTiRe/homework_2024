@@ -27,7 +27,7 @@ def validate_email(email: str) -> str:
         email: str - email for validate.
 
     Raises:
-        HTTPException: If email is not valid.
+        ValueError: If email is not valid.
 
     Returns:
         str: email.

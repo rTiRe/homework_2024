@@ -36,11 +36,14 @@ async def get_alert(alert_id: UUID, db: AsyncSession) -> Alert:
     return alert
 
 
-async def get_coin_data_from_alert(alert: UUID | Alert, db: AsyncSession) -> tuple[Alert, Coin, float]:
+async def get_coin_data_from_alert(
+    alert: UUID | Alert,
+    db: AsyncSession,
+) -> tuple[Alert, Coin, float]:
     """Get data about alert coin.
 
     Args:
-        alert_id: UUID | Alert - Alert or Alert id.
+        alert: UUID | Alert - Alert or Alert id.
         db: AsyncSession - db session.
 
     Returns:
@@ -153,8 +156,6 @@ async def update_alert(
     Returns:
         AlertRead: Pydantic model with fields for read.
     """
-    # if alert_data.threshold_price:
-    #     positive_number_validator(alert_data.threshold_price)
     alert, _, current_price = await get_coin_data_from_alert(alert_id, db)
     if alert_data.threshold_price:
         alert_type = 'inc' if alert_data.threshold_price > current_price else 'dec'
@@ -170,7 +171,7 @@ async def update_alert(
         await db.rollback()
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
-            'Ошибка обновления уведомления. Возможно, монеты с таким id нет.'
+            'Ошибка обновления уведомления. Возможно, монеты с таким id нет.',
         )
     await db.refresh(alert)
     return AlertRead(
