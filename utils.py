@@ -3,6 +3,24 @@ from datetime import datetime, timezone
 import aiohttp
 import aiosmtplib
 from email.message import EmailMessage
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+SessionLocal = None
+
+def init_session() -> None:
+    global SessionLocal
+    engine = create_async_engine(load_async_db(), echo=True)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
+
+
+async def get_session() -> AsyncGenerator:
+    global SessionLocal
+    async with SessionLocal() as session:
+        yield session
+
 
 def load_db(protocol: str = 'postgresql+psycopg') -> str:
     return f'{protocol}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}'
