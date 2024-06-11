@@ -20,7 +20,7 @@ def positive_number_validator(number: int | float) -> None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Number must be positive!')
 
 
-async def validate_email(email: str) -> str:
+def validate_email(email: str) -> str:
     """Validate email.
 
     Args:
@@ -33,12 +33,9 @@ async def validate_email(email: str) -> str:
         str: email.
     """
     if '@' not in email:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Email must contain @')
+        raise ValueError('Email must contain @')
     if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            'Provided email is not a valid email address.',
-        )
+        raise ValueError('Provided email is not a valid email address.')
     return email
 
 

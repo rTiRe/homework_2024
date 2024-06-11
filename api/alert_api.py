@@ -12,7 +12,6 @@ from api_models.alert_models import (AlertCreate, AlertRead, AlertsRead,
                                      AlertUpdate)
 from db_utils import get_session
 from models import Alert, Coin
-from validators import positive_number_validator, validate_email
 
 router = APIRouter()
 
@@ -37,19 +36,20 @@ async def get_alert(alert_id: UUID, db: AsyncSession) -> Alert:
     return alert
 
 
-async def get_coin_data_from_alert(alert_id: UUID, db: AsyncSession) -> tuple[Alert, Coin, float]:
+async def get_coin_data_from_alert(alert: UUID | Alert, db: AsyncSession) -> tuple[Alert, Coin, float]:
     """Get data about alert coin.
 
     Args:
-        alert_id: UUID - Alert id.
+        alert_id: UUID | Alert - Alert or Alert id.
         db: AsyncSession - db session.
 
     Returns:
         tuple[Alert, Coin, float]: founded alert, founded coin and coin current price.
     """
-    alert = await get_alert(alert_id, db)
+    if not isinstance(alert, (Alert, AlertCreate)):
+        alert = await get_alert(alert, db)
     coin = await get_coin(alert.coin_id, db)
-    current_price = await get_current_coin_price(db, coin.name)
+    current_price = await get_current_coin_price(coin.name, db)
     return alert, coin, current_price
 
 
@@ -93,10 +93,8 @@ async def create_alert(alert: AlertCreate, db: AsyncSession = Depends(get_sessio
     Returns:
         AlertRead: Pydantic model with fields for read.
     """
-    positive_number_validator(alert.threshold_price)
-    _, coin, current_price = await get_coin_data_from_alert(alert.id, db)
+    _, coin, current_price = await get_coin_data_from_alert(alert, db)
     alert_type = 'inc' if alert.threshold_price > current_price else 'dec'
-    alert.email = await validate_email(alert.email)
     new_alert = Alert(
         email=alert.email,
         coin_id=coin.id,
@@ -155,19 +153,25 @@ async def update_alert(
     Returns:
         AlertRead: Pydantic model with fields for read.
     """
-    positive_number_validator(alert_data.threshold_price)
+    # if alert_data.threshold_price:
+    #     positive_number_validator(alert_data.threshold_price)
     alert, _, current_price = await get_coin_data_from_alert(alert_id, db)
     if alert_data.threshold_price:
         alert_type = 'inc' if alert_data.threshold_price > current_price else 'dec'
         alert.alert_type = alert_type
         alert.threshold_price = alert_data.threshold_price
     if alert_data.email:
-        alert.email = await validate_email(alert_data.email)
+        alert.email = alert_data.email
+    if alert_data.coin_id:
+        alert.coin_id = alert_data.coin_id
     try:
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Ошибка обновления уведомления')
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            'Ошибка обновления уведомления. Возможно, монеты с таким id нет.'
+        )
     await db.refresh(alert)
     return AlertRead(
         id=alert.id,

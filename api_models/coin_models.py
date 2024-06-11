@@ -75,10 +75,7 @@ class CoinQuery(BaseModel):
         if timestamp_value is not None:
             current_time = get_current_datetime().timestamp()
             if timestamp_value > current_time:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f'{fields_info.field_name} must not be in the future',
-                )
+                raise ValueError(f'{fields_info.field_name} must not be in the future')
         return timestamp_value
 
     @field_validator('end_timestamp')
@@ -102,10 +99,7 @@ class CoinQuery(BaseModel):
         start_value = fields_info.data.get('start_timestamp')
         if start_value is not None and timestamp_value is not None:
             if timestamp_value < start_value:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail='end_timestamp must be after start_timestamp',
-                )
+                raise ValueError('end_timestamp must be after start_timestamp')
         return timestamp_value
 
     async def convert_to_datetime(self):
