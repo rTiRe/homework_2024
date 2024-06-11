@@ -1,16 +1,12 @@
+import os
+import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-
+from db_utils import load_db
 from models import Base
-
-from utils import load_db 
-
-import sys
-import os
 
 sys.path.append(os.getcwd())
 
