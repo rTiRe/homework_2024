@@ -201,7 +201,7 @@ class Price(BaseModel):
 
 class CoinResponse(BaseModel):
     name: str
-    alert_ids: list[str]
+    alert_ids: list[UUID]
     prices: list[Price]
 
 
