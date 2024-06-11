@@ -4,8 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import (Depends, FastAPI, Form, HTTPException, Request, responses,
-                     templating)
+from fastapi import Depends, FastAPI, Form, Request, responses, templating
 from sqlalchemy import Sequence, exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -203,15 +202,12 @@ async def subscribe(
         templating.Jinja2Templates.TemplateResponse: rendered main page.
     """
     subscribe_message_literal = 'subscribe_message'
-    coin_obj = await db.execute(select(Coin).filter(Coin.name == coin.upper()))
-    coin_obj = coin_obj.scalars().first()
     messages = False
-    if not coin_obj:
-        messages = {subscribe_message_literal: 'Монета не найдена'}
-    try:
-        current_price = await coin_api.get_current_coin_price(coin, db)
-    except HTTPException:
-        messages = {subscribe_message_literal: 'Не удалось получить цену монеты.'}
+    coin_data = await coin_api.get_coin_data_pretty(coin, db)
+    if isinstance(coin_data, tuple):
+        coin_obj, current_price = coin_data
+    else:
+        messages = {subscribe_message_literal: coin_data}
     if threshold_price < 0:
         messages = {subscribe_message_literal: 'Цена не может быть отрицательной'}
     if not messages:
@@ -227,6 +223,9 @@ async def subscribe(
             await db.commit()
         except exc.IntegrityError:
             messages = {subscribe_message_literal: 'Такая подписка уже оформлена!'}
+            await db.rollback()
+        except ValueError as exception:
+            messages = {subscribe_message_literal: str(exception)}
             await db.rollback()
         else:
             messages = {subscribe_message_literal: 'Подписка оформлена успешно'}

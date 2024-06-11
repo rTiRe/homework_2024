@@ -65,6 +65,27 @@ async def get_current_coin_price(coin_name: str, db: AsyncSession) -> float:
     raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Не удалось получить текущую цену монеты')
 
 
+async def get_coin_data_pretty(name: str, db: AsyncSession) -> tuple | str:
+    """Get coin object and coin price.
+
+    Args:
+        name: str - coin name.
+        db: AsyncSession - db session.
+
+    Returns:
+        tuple | str: coin data or error message.
+    """
+    coin = await db.execute(select(Coin).filter(Coin.name == name.upper()))
+    coin = coin.scalars().first()
+    if not coin:
+        return 'Монета не найдена'
+    try:
+        current_price = await get_current_coin_price(coin, db)
+    except HTTPException:
+        return 'Не удалось получить цену монеты.'
+    return coin, current_price
+
+
 @router.post('/coins/', response_model=CoinRead, status_code=status.HTTP_201_CREATED)
 async def create_coin(coin: CoinCreate, db: AsyncSession = Depends(get_session)) -> CoinRead:
     """Create new Coin.
