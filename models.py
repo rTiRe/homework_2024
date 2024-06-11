@@ -5,7 +5,7 @@ import re
 from utils import check_coin_name
 from utils import get_current_datetime
 from datetime import datetime
-from enum import Enum as PyEnum
+from sqlalchemy.schema import Index
 
 class Base(DeclarativeBase):
     """Base Moodels class."""
@@ -31,7 +31,7 @@ class Coin(UUIDMixin, Base):
 class CoinPrice(UUIDMixin, Base):
     __tablename__ = 'coins_prices'
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    timedate: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=get_current_datetime)
+    timedate: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=get_current_datetime, index=True)
     coin_id: Mapped[UUID] = mapped_column(ForeignKey('coins.id'))
     coin: Mapped[Coin] = relationship(back_populates='prices')
 
