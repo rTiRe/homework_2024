@@ -2,7 +2,7 @@
 
 from typing import AsyncGenerator
 
-from constants import DBNAME, HOST, PASSWORD, PORT, USER
+from .constants import DBNAME, HOST, PASSWORD, PORT, USER
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 

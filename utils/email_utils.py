@@ -3,7 +3,7 @@
 from email.message import EmailMessage
 
 import aiosmtplib
-from constants import SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USERNAME
+from .constants import SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USERNAME
 
 
 async def send_email(subject: str, recipient: str, body: str) -> None:
