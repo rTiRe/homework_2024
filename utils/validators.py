@@ -6,7 +6,7 @@ from datetime import datetime
 from fastapi import HTTPException, status
 
 from api.coin_utils import get_coin_data
-from time_utils import get_delta_timestamp, get_now_timestamp
+from utils.time_utils import get_delta_timestamp, get_now_timestamp
 
 
 def positive_number_validator(number: int | float) -> None:

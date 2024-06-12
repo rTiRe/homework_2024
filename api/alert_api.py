@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.coin_api import get_coin, get_current_coin_price
 from api_models.alert_models import (AlertCreate, AlertRead, AlertsRead,
                                      AlertUpdate)
-from db_utils import get_session
 from models import Alert, Coin
+from utils.db_utils import get_session
 
 router = APIRouter()
 

@@ -3,7 +3,6 @@
 from email.message import EmailMessage
 
 import aiosmtplib
-
 from constants import SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USERNAME
 
 

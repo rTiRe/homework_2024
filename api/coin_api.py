@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_models.coin_models import (CoinCreate, CoinPriceRead, CoinRead,
                                     CoinsRead, Price)
-from db_utils import get_session
 from models import Alert, Coin, CoinPrice
-from validators import check_coin_name, validate_timestamps
+from utils.db_utils import get_session
+from utils.validators import check_coin_name, validate_timestamps
 
 router = APIRouter()
 

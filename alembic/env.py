@@ -5,8 +5,8 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from db_utils import load_db
 from models import Base
+from utils.db_utils import load_db
 
 sys.path.append(os.getcwd())
 

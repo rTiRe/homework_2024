@@ -10,11 +10,11 @@ from sqlalchemy import Sequence, exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api import alert_api, coin_api, coin_utils
-from constants import APP_HOST, APP_PORT
-from db_utils import get_session
-from email_utils import send_email
 from models import Alert, Coin, CoinPrice
-from validators import check_coin_name, validate_email
+from utils.constants import APP_HOST, APP_PORT
+from utils.db_utils import get_session
+from utils.email_utils import send_email
+from utils.validators import check_coin_name, validate_email
 
 alert_router = alert_api.router
 coin_router = coin_api.router

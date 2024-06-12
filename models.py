@@ -8,8 +8,8 @@ from sqlalchemy import DateTime, Float, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import (DeclarativeBase, Mapped, mapped_column,
                             relationship, validates)
 
-from time_utils import get_current_datetime
-from validators import check_coin_name
+from utils.time_utils import get_current_datetime
+from utils.validators import check_coin_name
 
 NAME_FIELD_LENGTH = 50
 ALERT_FIELD_LENGTH = 3
