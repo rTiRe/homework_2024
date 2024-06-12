@@ -1,6 +1,5 @@
 """SQLAlchemy models."""
 
-import re
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -93,9 +92,6 @@ class Alert(UUIDMixin, Base):
         Args:
             email_field: str - column name.
             email_value: str - column value.
-
-        Raises:
-            ValueError: if email is not valid.
 
         Returns:
             str: email if correct.
