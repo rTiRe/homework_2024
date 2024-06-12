@@ -136,7 +136,7 @@ async def get_coins_data(db: AsyncSession) -> list[dict]:
         price = price_result.scalars().first()
         coin_data = {
             'name': coin.name,
-            'price': price.price if price else 'No Price',
+            'price': price.price if price else 'Нет цены',
         }
         coins_data.append(coin_data)
     return coins_data

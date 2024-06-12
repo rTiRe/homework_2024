@@ -19,7 +19,10 @@ def positive_number_validator(number: int | float) -> None:
         HTTPException: if number is not positive.
     """
     if number < 0:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Number must be positive!')
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            f'Число {number} не может быть меньше нуля!',
+        )
 
 
 def validate_email(email: str) -> str:
@@ -29,15 +32,21 @@ def validate_email(email: str) -> str:
         email: str - email for validate.
 
     Raises:
-        ValueError: If email is not valid.
+        HTTPException: If email is not valid.
 
     Returns:
         str: email.
     """
     if '@' not in email:
-        raise ValueError('Email must contain @')
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            'Email должен содержать @',
+        )
     if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-        raise ValueError('Provided email is not a valid email address.')
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            'Переданный email не валидный.',
+        )
     return email
 
 
@@ -68,7 +77,7 @@ async def _validate_not_future(timestamp: float) -> None:
         if timestamp > current_time:
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_ENTITY,
-                f'timestamp value {timestamp} must not be in the future',
+                f'timestamp {timestamp} не может быть в будущем!',
             )
 
 
@@ -86,7 +95,7 @@ async def _validate_end_after_start(start_timestamp: float, end_timestamp: float
         if end_timestamp < start_timestamp:
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_ENTITY,
-                'end_timestamp must be after start_timestamp',
+                'end_timestamp должен быть меньше start_timestamp',
             )
 
 

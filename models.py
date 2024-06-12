@@ -9,7 +9,7 @@ from sqlalchemy.orm import (DeclarativeBase, Mapped, mapped_column,
                             relationship, validates)
 
 from utils.time_utils import get_current_datetime
-from utils.validators import check_coin_name
+from utils.validators import check_coin_name, validate_email
 
 NAME_FIELD_LENGTH = 50
 ALERT_FIELD_LENGTH = 3
@@ -48,7 +48,7 @@ class Coin(UUIDMixin, Base):
             str: upper cased coin name.
         """
         if not check_coin_name(field_value):
-            raise ValueError(f'{field_key} is not a valid coin name.')
+            raise ValueError(f'Монеты {field_key} не существует.')
         return field_value.upper()
 
 
@@ -87,12 +87,12 @@ class Alert(UUIDMixin, Base):
     )
 
     @validates('email')
-    def validate_email(self, field_key: str, field_value: str) -> str:
+    def validate_email(self, email_field: str, email_value: str) -> str:
         """Email validator.
 
         Args:
-            field_key: str - column name.
-            field_value: str - column value.
+            email_field: str - column name.
+            email_value: str - column value.
 
         Raises:
             ValueError: if email is not valid.
@@ -100,8 +100,5 @@ class Alert(UUIDMixin, Base):
         Returns:
             str: email if correct.
         """
-        if '@' not in field_value:
-            raise ValueError('email must contain "@"')
-        if not re.match(r'[^@]+@[^@]+\.[^@]+', field_value):
-            raise ValueError('Provided email is not a valid email address.')
-        return field_value
+        validate_email(email_value)
+        return email_value
