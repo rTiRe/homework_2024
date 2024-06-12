@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  postgres:
+    image: 'postgres:15.5'
+    env_file: .env
+    ports:
+      - ${POSTGRES_PORT}:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}" ]
+      interval: 1s
+      timeout: 1s
+      retries: 60
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  alembic_migrate:
+    build: .
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    command: alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  fastapi:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port ${APP_PORT}
+    env_file: .env
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      alembic_migrate:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
