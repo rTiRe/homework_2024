@@ -21,6 +21,7 @@ class AlertCreate(AlertBase):
     coin_id: UUID
 
     @field_validator('threshold_price')
+    @classmethod
     def validate_threshold_price(cls, price_value: float, fields_info: ValidationInfo) -> float:
         """Threshold price validator.
 
@@ -39,6 +40,7 @@ class AlertCreate(AlertBase):
         return price_value
 
     @field_validator('email')
+    @classmethod
     def validate_email(cls, email_value: str, fields_info: ValidationInfo) -> str:
         """Email validator.
 
@@ -74,6 +76,7 @@ class AlertUpdate(BaseModel):
     coin_id: Optional[UUID] = None
 
     @field_validator('threshold_price')
+    @classmethod
     def validate_threshold_price(cls, price_value: float, fields_info: ValidationInfo) -> float:
         """Threshold price validator.
 
@@ -92,6 +95,7 @@ class AlertUpdate(BaseModel):
         return price_value
 
     @field_validator('email')
+    @classmethod
     def validate_email(cls, email_value: str, fields_info: ValidationInfo) -> str:
         """Email validator.
 

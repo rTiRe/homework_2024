@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_models.coin_models import (CoinCreate, CoinPriceRead, CoinQuery,
-                                    CoinRead, CoinsRead, Price)
+from api_models.coin_models import (CoinCreate, CoinPriceRead, CoinRead,
+                                    CoinsRead, Price)
 from db_utils import get_session
 from models import Alert, Coin, CoinPrice
-from validators import check_coin_name
+from validators import check_coin_name, validate_timestamps
 
 router = APIRouter()
 
@@ -142,26 +142,28 @@ async def read_coins(db: AsyncSession = Depends(get_session)) -> CoinsRead:
 @router.get('/coins/{coin_id}', response_model=CoinPriceRead)
 async def read_coin(
     coin_id: str,
-    coin_query: CoinQuery = Depends(CoinQuery),
+    start_timestamp: float = None,
+    end_timestamp: float = None,
     db: AsyncSession = Depends(get_session),
 ) -> CoinPriceRead:
     """Get all data about Coin.
 
     Args:
         coin_id: str - Coin id.
-        coin_query: CoinQuery, optional - Pydantic for coin data. Defaults to Depends(CoinQuery).
+        start_timestamp: float - start timestamp for find prices. Defaults to None (5 minutes ago).
+        end_timestamp: float - end timestamp for find prices. Defaults to None (now).
         db: AsyncSession, optional - db session. Defaults to Depends(get_session).
 
     Returns:
         CoinPriceRead: Pydantic model with fields for read coin data with prices.
     """
-    await coin_query.convert_to_datetime()
+    start_datetime, end_datetime = await validate_timestamps(start_timestamp, end_timestamp)
     coin = await get_coin(coin_id, db)
     query = await db.execute(
         select(CoinPrice).filter(
             CoinPrice.coin_id == coin_id,
-            CoinPrice.timedate >= coin_query.start_timestamp,
-            CoinPrice.timedate <= coin_query.end_timestamp,
+            CoinPrice.timedate >= start_datetime,
+            CoinPrice.timedate <= end_datetime,
         ),
     )
     prices = query.scalars().all()
