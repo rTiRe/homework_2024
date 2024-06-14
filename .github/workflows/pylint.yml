@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres/postgres
+        image: postgres:15.5
         env:
           POSTGRES_PASSWORD: test
           POSTGRES_DBNAME: postgres
@@ -27,4 +27,5 @@ jobs:
         pip install -r requirements.txt
     - name: Тесты
       run: |
+        alembic upgrade head
         python -m pytest
