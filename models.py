@@ -9,7 +9,6 @@ from sqlalchemy.orm import (DeclarativeBase, Mapped, mapped_column,
 
 from utils.time_utils import get_current_datetime
 from utils.validators import check_coin_name, validate_email
-import asyncio
 
 NAME_FIELD_LENGTH = 50
 ALERT_FIELD_LENGTH = 3

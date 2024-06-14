@@ -154,6 +154,9 @@ async def read_coin(
         end_timestamp: float - end timestamp for find prices. Defaults to None (now).
         db: AsyncSession, optional - db session. Defaults to Depends(get_session).
 
+    Raises:
+        HTTPException: when coin is not found in the database.
+
     Returns:
         CoinPriceRead: Pydantic model with fields for read coin data with prices.
     """

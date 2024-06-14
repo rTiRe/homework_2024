@@ -1,15 +1,22 @@
+"""Tests for read and add coins."""
+
 import pytest
-from httpx import AsyncClient
+from conftest import assert_json_contenttype, get_coin_id, update_and_wait
 from fastapi import status
-from conftest import get_coin_id, assert_json_contenttype
-from main import update_prices
-from utils.time_utils import get_now_timestamp, get_delta_timestamp
+from httpx import AsyncClient
 from test_api_get_coin import test_get_coins
-import asyncio
+
+from main import update_prices
+from utils.time_utils import get_delta_timestamp, get_now_timestamp
 
 
 @pytest.mark.asyncio(scope='session')
 async def test_api_add_coin(async_client: AsyncClient) -> None:
+    """Test add coin.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     coin_name = 'btc'
     response = await async_client.post(
         '/coins/',
@@ -25,6 +32,11 @@ async def test_api_add_coin(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio(scope='session')
 async def test_api_add_existing_coin(async_client: AsyncClient) -> None:
+    """Test add also existing coin.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     coin_name = 'btc'
     response = await async_client.post(
         '/coins/',
@@ -40,6 +52,11 @@ async def test_api_add_existing_coin(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio(scope='session')
 async def test_api_add_coin_with_unexisting_name(async_client: AsyncClient) -> None:
+    """Test coin data add with also existing name.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     coin_name = 'unexisting name'
     response = await async_client.post(
         '/coins/',
@@ -55,6 +72,11 @@ async def test_api_add_coin_with_unexisting_name(async_client: AsyncClient) -> N
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_coins_with_data(async_client: AsyncClient) -> None:
+    """Test coins data.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     await test_get_coins(async_client)
     response = await async_client.get('/coins/')
     result_content: dict = response.json()
@@ -63,6 +85,11 @@ async def test_get_coins_with_data(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_coin_data(async_client: AsyncClient) -> None:
+    """Test get coin data.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     prices_count = 3
     coin_name = 'btc'
     for _ in range(prices_count):
@@ -78,7 +105,12 @@ async def test_get_coin_data(async_client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio(scope='session')
-async def test_get_unexisting_coin_data(async_client: AsyncClient) -> None:
+async def test_get_unexisting_coin_id(async_client: AsyncClient) -> None:
+    """Test coin data with unexisting coin id.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     coin_id = '00000000-0000-0000-0000-000000000000'
     response = await async_client.get(f'/coins/{coin_id}')
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -89,13 +121,18 @@ async def test_get_unexisting_coin_data(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_coin_data_with_timestamp(async_client: AsyncClient) -> None:
+    """Test coin data with timestamp.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     prices_count = 3
     coin_name = 'btc'
     for _ in range(prices_count):
-        await update_prices()
-        await asyncio.sleep(2)
+        await update_and_wait(async_client)
     coin_id = await get_coin_id(coin_name, async_client)
-    start_timestamp = await get_delta_timestamp(0.05)
+    three_seconds = 0.05
+    start_timestamp = await get_delta_timestamp(three_seconds)
     end_timestamp = await get_now_timestamp()
     response = await async_client.get(
         f'/coins/{coin_id}?start_timestamp={start_timestamp}&end_timestamp={end_timestamp}',
@@ -110,6 +147,11 @@ async def test_get_coin_data_with_timestamp(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio(scope='session')
 async def test_coin_data_incorrect_timestamps_positions(async_client: AsyncClient) -> None:
+    """Test coin data with incorrect timestamp positions.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     prices_count = 2
     coin_name = 'btc'
     coin_id = await get_coin_id(coin_name, async_client)
@@ -127,6 +169,11 @@ async def test_coin_data_incorrect_timestamps_positions(async_client: AsyncClien
 
 @pytest.mark.asyncio(scope='session')
 async def test_coin_data_start_timestamp_in_future(async_client: AsyncClient) -> None:
+    """Test coin data with start timestamp in future.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     prices_count = 2
     coin_name = 'btc'
     coin_id = await get_coin_id(coin_name, async_client)
@@ -144,6 +191,11 @@ async def test_coin_data_start_timestamp_in_future(async_client: AsyncClient) ->
 
 @pytest.mark.asyncio(scope='session')
 async def test_coin_data_end_timestamp_in_future(async_client: AsyncClient) -> None:
+    """Test coin data with end timestamp in future.
+
+    Args:
+        async_client: AsyncClient - client.
+    """
     prices_count = 2
     coin_name = 'btc'
     coin_id = await get_coin_id(coin_name, async_client)
