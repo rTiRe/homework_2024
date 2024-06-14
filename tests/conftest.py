@@ -23,6 +23,16 @@ async def get_coin_id(name: str, async_client: AsyncClient) -> str:
             return coin['id']
 
 
+async def add_coin(name: str, async_client: AsyncClient) -> None:
+    response = await async_client.post(
+        '/coins/',
+        json={
+            'name': name,
+        },
+    )
+    print('rrrrrrrrrrrrrrrrrrr', response.json())
+
+
 sync_client = TestClient(app)
 
 @pytest_asyncio.fixture(scope='session')

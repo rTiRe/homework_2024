@@ -1,20 +1,22 @@
 import pytest
 from httpx import AsyncClient
 from fastapi import status
-from conftest import assert_content
+from conftest import assert_content, add_coin
 from test_root import test_root
 from main import update_prices
 
 @pytest.mark.asyncio(scope='session')
 async def test_subscribe_cannot_get_price(async_client: AsyncClient) -> None:
+    await add_coin('doge', async_client)
     response = await async_client.post(
         '/subscribe',
         data={
             'email': 'testemail@example.com',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': 1.0,
         },
     )
+    print(response.content.decode())
     assert response.status_code == status.HTTP_200_OK
     assert 'text/html; charset=utf-8' in response.headers['content-type']
     assert_content(
@@ -31,10 +33,11 @@ async def test_subscribe(async_client: AsyncClient) -> None:
         '/subscribe',
         data={
             'email': 'testemail@example.com',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': 1.0,
         },
     )
+    print(response.content.decode())
     assert response.status_code == status.HTTP_200_OK
     assert 'text/html; charset=utf-8' in response.headers['content-type']
     assert_content(
@@ -50,7 +53,7 @@ async def test_subscribe_with_equal_data(async_client: AsyncClient) -> None:
         '/subscribe',
         data={
             'email': 'testemail@example.com',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': 1.0,
         },
     )
@@ -69,7 +72,7 @@ async def test_subscribe_with_negative_threshold_price(async_client: AsyncClient
         '/subscribe',
         data={
             'email': 'testemail@example.com',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': -1.0,
         },
     )
@@ -88,7 +91,7 @@ async def test_subscribe_with_email_without_at(async_client: AsyncClient) -> Non
         '/subscribe',
         data={
             'email': 'testemail',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': 1.0,
         },
     )
@@ -107,7 +110,7 @@ async def test_subscribe_with_incorrect_email_part_after_at(async_client: AsyncC
         '/subscribe',
         data={
             'email': 'testemail@incorrect part',
-            'coin': 'eth',
+            'coin': 'doge',
             'threshold_price': 1.0,
         },
     )

@@ -7,6 +7,8 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 
 from utils.validators import validate_email
 
+from fastapi import HTTPException, status
+
 
 class AlertBase(BaseModel):
     """Base alert model."""
@@ -36,7 +38,7 @@ class AlertCreate(AlertBase):
             float: threshold price.
         """
         if price_value < 0:
-            raise ValueError('threshold_price должен быть больше нуля.')
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, 'threshold_price должен быть больше нуля.')
         return price_value
 
     @field_validator('email')

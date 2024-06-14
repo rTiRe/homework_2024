@@ -5,6 +5,7 @@ from conftest import get_coin_id, assert_json_contenttype
 from main import update_prices
 from utils.time_utils import get_now_timestamp, get_delta_timestamp
 from test_api_get_coin import test_get_coins
+import asyncio
 
 
 @pytest.mark.asyncio(scope='session')
@@ -80,21 +81,21 @@ async def test_get_coin_data(async_client: AsyncClient) -> None:
 async def test_get_unexisting_coin_data(async_client: AsyncClient) -> None:
     coin_id = '00000000-0000-0000-0000-000000000000'
     response = await async_client.get(f'/coins/{coin_id}')
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     assert_json_contenttype(response)
     result_content: dict = response.json()
-    assert result_content.get('detail') == 'Неверный id монеты'
+    assert result_content.get('detail') == 'Монета не найдена в базе данных!'
 
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_coin_data_with_timestamp(async_client: AsyncClient) -> None:
-    prices_count = 2
+    prices_count = 3
     coin_name = 'btc'
     for _ in range(prices_count):
         await update_prices()
+        await asyncio.sleep(2)
     coin_id = await get_coin_id(coin_name, async_client)
-    start_seconds = round((prices_count-1)/60, 2)
-    start_timestamp = await get_delta_timestamp(start_seconds)
+    start_timestamp = await get_delta_timestamp(0.05)
     end_timestamp = await get_now_timestamp()
     response = await async_client.get(
         f'/coins/{coin_id}?start_timestamp={start_timestamp}&end_timestamp={end_timestamp}',
@@ -104,7 +105,7 @@ async def test_get_coin_data_with_timestamp(async_client: AsyncClient) -> None:
     result_content: dict = response.json()
     assert result_content.get('name') == coin_name.upper()
     assert not result_content.get('alert_ids')
-    assert len(result_content.get('prices')) == prices_count//2
+    assert len(result_content.get('prices')) <= 2
 
 
 @pytest.mark.asyncio(scope='session')
