@@ -173,9 +173,9 @@ async def root(
     """
     coins_data = await get_coins_data(db)
     return templates.TemplateResponse(
+        request,
         'index.html',
         {
-            'request': request,
             'coins': coins_data,
             'messages': messages,
         },
@@ -212,9 +212,9 @@ async def subscribe(
     if threshold_price < 0:
         messages = {subscribe_message_literal: 'Цена не может быть отрицательной'}
     try:
-        email = await validate_email(email)
-    except HTTPException:
-        messages = {subscribe_message_literal: 'Введите корректный email'}
+        email = validate_email(email)
+    except HTTPException as exception:
+        messages = {subscribe_message_literal: str(exception)}
     if not messages:
         alert_type = 'inc' if threshold_price > current_price else 'dec'
         new_alert = Alert(
