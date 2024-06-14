@@ -129,7 +129,7 @@ async def test_get_coin_data_with_timestamp(async_client: AsyncClient) -> None:
     prices_count = 3
     coin_name = 'btc'
     for _ in range(prices_count):
-        await update_and_wait(async_client)
+        await update_and_wait()
     coin_id = await get_coin_id(coin_name, async_client)
     three_seconds = 0.05
     start_timestamp = await get_delta_timestamp(three_seconds)

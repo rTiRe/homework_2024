@@ -39,7 +39,11 @@ async def test_put_alert(async_client: AsyncClient) -> None:
     """
     coin1_name = 'sand'
     coin2_name = 'yfi'
-    coin1_id, coin2_id = await get_coins_ids(coin1_name, coin2_name)
+    coin1_id, coin2_id = await get_coins_ids(
+        coin1_name,
+        coin2_name,
+        async_client,
+    )
     await update_prices()
     local_data = {
         'email': 'example1@example.com',
