@@ -5,7 +5,7 @@ from conftest import assert_content
 from test_root import test_root
 from main import update_prices
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_cannot_get_price(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',
@@ -24,7 +24,7 @@ async def test_subscribe_cannot_get_price(async_client: AsyncClient) -> None:
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe(async_client: AsyncClient) -> None:
     await update_prices()
     response = await async_client.post(
@@ -44,7 +44,7 @@ async def test_subscribe(async_client: AsyncClient) -> None:
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_with_equal_data(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',
@@ -63,7 +63,7 @@ async def test_subscribe_with_equal_data(async_client: AsyncClient) -> None:
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_with_negative_threshold_price(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',
@@ -82,7 +82,7 @@ async def test_subscribe_with_negative_threshold_price(async_client: AsyncClient
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_with_email_without_at(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',
@@ -101,7 +101,7 @@ async def test_subscribe_with_email_without_at(async_client: AsyncClient) -> Non
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_with_incorrect_email_part_after_at(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',
@@ -120,7 +120,7 @@ async def test_subscribe_with_incorrect_email_part_after_at(async_client: AsyncC
     await test_root(async_client)
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_subscribe_with_unexist_coin(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/subscribe',

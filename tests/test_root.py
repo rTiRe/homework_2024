@@ -4,7 +4,7 @@ from fastapi import status
 from conftest import assert_content
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope='session')
 async def test_root(
     async_client: AsyncClient,
     test_status_code: int = status.HTTP_200_OK,

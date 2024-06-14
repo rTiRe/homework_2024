@@ -157,6 +157,10 @@ async def read_coin(
     Returns:
         CoinPriceRead: Pydantic model with fields for read coin data with prices.
     """
+    try:
+        UUID(coin_id)
+    except ValueError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Неверный id монеты')
     start_datetime, end_datetime = await validate_timestamps(start_timestamp, end_timestamp)
     coin = await get_coin(coin_id, db)
     query = await db.execute(

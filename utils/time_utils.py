@@ -12,7 +12,7 @@ def get_current_datetime() -> datetime:
     return datetime.now(timezone.utc)
 
 
-async def get_delta_timestamp(delta_minutes: int = 5) -> float:
+async def get_delta_timestamp(delta_minutes: float = 5.0) -> float:
     """Get timestamp for delta minutes ago.
 
     Args:
