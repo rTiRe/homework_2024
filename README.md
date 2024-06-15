@@ -6,8 +6,8 @@
 
 ### 2. Клонирование
 ```
-git clone https://github.com/rTiRe/crud_tours.git
-cd crud_tours
+git clone https://github.com/rTiRe/homework_2024.git
+cd homework_2024
 ```
 
 ### 3. Создание файла окружения
